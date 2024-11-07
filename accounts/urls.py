@@ -1,12 +1,3 @@
-# from django.urls import path
-# from .views import AdminOnlyView, EditorOrAdminView, ViewerOrAboveView
-
-# urlpatterns = [
-#     path('admin-only/', AdminOnlyView.as_view(), name='admin-only'),
-#     path('editor-or-admin/', EditorOrAdminView.as_view(), name='editor-or-admin'),
-#     path('viewer-or-above/', ViewerOrAboveView.as_view(), name='viewer-or-above'),
-# ]
-
 from django.urls import path
 from .views import custom_register, CustomLoginView, GetAllUsersView, UpdateUserView, GetUserByTokenView, UpdateRoleUserView
 

@@ -3,9 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from .managers import CustomUserManager
 
-# Model Custom User
 class CustomUserModel(AbstractBaseUser, PermissionsMixin):
-    # Peran Pengguna
     USER_ROLES = (
         ('owner', 'Owner/Developer'),
         ('partner', 'Partner/Mitra'),
@@ -15,8 +13,8 @@ class CustomUserModel(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_("Email Address"), unique=True, max_length=255)
     first_name = models.CharField(_("First Name"), max_length=100)
     last_name = models.CharField(_("Last Name"), max_length=100, null=True, blank=True)
-    role = models.CharField(max_length=10, choices=USER_ROLES, default='user')  # Field untuk Role
-    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)  # Field untuk Foto Profil
+    role = models.CharField(max_length=10, choices=USER_ROLES, default='user')  
+    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)  
     
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

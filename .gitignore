@@ -1,16 +1,13 @@
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Virtual Environment
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
 
-# Django stuff:
 *.log
 *.pot
 *.pyc
@@ -19,19 +16,15 @@ venv.bak/
 *.pdb
 *.sqlite3
 
-# Ignore database
 db.sqlite3
 *.db
 
-# Ignore local environment settings
 .env
 
-# Static and media files
 /static/
 staticfiles/
 /media/
 
-# Ignore coverage report files
 htmlcov/
 .tox/
 .coverage
@@ -42,7 +35,6 @@ coverage.xml
 *.py,cover
 .hypothesis/
 
-# Ignore Django migrations
 *.log
 *.pot
 *.pyc
@@ -51,17 +43,14 @@ coverage.xml
 *.db
 *.sqlite3
 
-# Ignore IDE configurations
 .idea/
 .vscode/
 *.sublime-workspace
 *.sublime-project
 
-# Ignore testing results
 .pytest_cache/
 nosetests.xml
 coverage.xml
 
-# Ignore temporary files
 *.swp
 *~

@@ -1,32 +1,3 @@
-# from django.shortcuts import render
-
-# # Create your views here.
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from rest_framework.permissions import IsAuthenticated
-# from .permissions import IsAdminUser, IsEditorOrAdmin, IsViewerOrAbove
-
-# # View yang hanya bisa diakses oleh Admin
-# class AdminOnlyView(APIView):
-#     permission_classes = [IsAuthenticated, IsAdminUser]
-
-#     def get(self, request):
-#         return Response({"message": "Hanya Admin yang bisa mengakses ini."})
-
-# # View yang bisa diakses oleh Editor dan Admin
-# class EditorOrAdminView(APIView):
-#     permission_classes = [IsAuthenticated, IsEditorOrAdmin]
-
-#     def get(self, request):
-#         return Response({"message": "Editor dan Admin bisa mengakses ini."})
-
-# # View yang bisa diakses oleh Viewer ke atas (Viewer, Editor, Admin)
-# class ViewerOrAboveView(APIView):
-#     permission_classes = [IsAuthenticated, IsViewerOrAbove]
-
-#     def get(self, request):
-#         return Response({"message": "Viewer, Editor, dan Admin bisa mengakses ini."})
-
 from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.response import Response
@@ -62,7 +33,7 @@ class GetUserByTokenView(APIView):
     permission_classes = [IsAuthenticated, IsUserOrAbove] 
     
     def get(self, request):
-        user = request.user  # Mendapatkan user dari token JWT
+        user = request.user  
         
         return Response({
             'id': user.id,
@@ -84,10 +55,8 @@ class CustomLoginView(APIView):
         user = authenticate(request, email=email, password=password)
         
         if user is not None:
-            # Jika otentikasi berhasil, buat refresh dan access token
             refresh = RefreshToken.for_user(user)
             
-            # Update waktu login terakhir (opsional)
             update_last_login(None, user)
             
             return Response({
@@ -102,7 +71,6 @@ class CustomLoginView(APIView):
                 }
             }, status=status.HTTP_200_OK)
         else:
-            # Jika otentikasi gagal, kirim respon dengan pesan error
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -112,13 +80,10 @@ def custom_register(request):
         serializer = CustomRegisterSerializer(data=request.data)
         
         if serializer.is_valid():
-            # Simpan user baru jika valid
             user = serializer.save()
             
-            # Kirim email konfirmasi
             send_email_confirmation(request, user)
             
-            # Buat token JWT untuk user baru
             refresh = RefreshToken.for_user(user)
             
             return Response({
@@ -127,8 +92,8 @@ def custom_register(request):
                     'email': user.email,
                     'first_name': user.first_name,
                     'last_name': user.last_name,
-                    'role': user.role,  # Tambahkan role di response
-                    'profile_picture': user.profile_picture.url if user.profile_picture else None,  # Tambahkan profile_picture di response
+                    'role': user.role,  
+                    'profile_picture': user.profile_picture.url if user.profile_picture else None,  
                 },
                 'tokens': {
                     'refresh': str(refresh),
@@ -136,7 +101,6 @@ def custom_register(request):
                 }
             }, status=status.HTTP_201_CREATED)
         else:
-            # Jika ada kesalahan dalam serializer, kembalikan error
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
