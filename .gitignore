@@ -1,0 +1,67 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.sqlite3
+
+# Ignore database
+db.sqlite3
+*.db
+
+# Ignore local environment settings
+.env
+
+# Static and media files
+/static/
+staticfiles/
+/media/
+
+# Ignore coverage report files
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Ignore Django migrations
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Ignore IDE configurations
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Ignore testing results
+.pytest_cache/
+nosetests.xml
+coverage.xml
+
+# Ignore temporary files
+*.swp
+*~
