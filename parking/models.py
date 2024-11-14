@@ -9,6 +9,9 @@ class Paket(models.Model):
     harga = models.DecimalField(max_digits=10, decimal_places=2)
     diskon = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
     durasi_hari = models.IntegerField(help_text="Durasi paket dalam hari")
+    benefits = models.TextField(help_text="Daftar manfaat, pisahkan dengan koma", blank=True)
+    tipe_paket = models.CharField(max_length=100)
+    kendaraan = models.CharField(max_length=50)
 
     def __str__(self):
         return self.nama_paket
@@ -16,7 +19,7 @@ class Paket(models.Model):
 class Parking(models.Model):
     nama_tempat = models.CharField(max_length=100)
     lokasi = models.CharField(max_length=255)
-    kode_lokasi = models.CharField(max_length=20, unique=True)
+    koordinat = models.CharField(max_length=20, unique=True)
     tipe_kendaraan = models.CharField(max_length=20, choices=(('mobil', 'Mobil'), ('motor', 'Motor')))
     kapasitas = models.IntegerField()
     terpakai = models.IntegerField(default=0)

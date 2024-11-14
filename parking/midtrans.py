@@ -2,9 +2,9 @@ import midtransclient
 
 def create_midtrans_transaction(order_id, gross_amount, user):
     snap = midtransclient.Snap(
-        is_production=False,
-        server_key='your-server-key',
-        client_key='your-client-key'
+        is_production=False,  
+        server_key='SB-Mid-server-ivQLZlUjzguZt_0FQ5eJrDQD', 
+        client_key='SB-Mid-client-E_ejwlGj5xL2iKMb'  
     )
 
     transaction_data = {
@@ -20,4 +20,4 @@ def create_midtrans_transaction(order_id, gross_amount, user):
     }
 
     transaction = snap.create_transaction(transaction_data)
-    return transaction['redirect_url']
+    return transaction['redirect_url'], transaction['token']

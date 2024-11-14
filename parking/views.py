@@ -5,10 +5,10 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from datetime import timedelta
 from .models import Paket, Parking, TransaksiPaket, CheckInParkir
-from .serializers import PaketSerializer, ParkingSerializer
+from .serializers import PaketSerializer, ParkingSerializer, TransaksiPaketSerializer, CheckInParkirSerializer
 from .permissions import IsOwner, IsPartnerOrOwner, IsUserOrAbove
 from rest_framework.response import Response
-from .midtrans import create_midtrans_transaction  
+from .midtrans import create_midtrans_transaction
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated, IsUserOrAbove])
@@ -21,7 +21,7 @@ def parking_list_create(request):
     if request.method == 'POST':
         if not request.user.role == 'owner':
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
-        
+
         serializer = ParkingSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -31,10 +31,7 @@ def parking_list_create(request):
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated, IsOwner])
 def parking_detail(request, pk):
-    try:
-        parking = Parking.objects.get(pk=pk)
-    except Parking.DoesNotExist:
-        return Response({'error': 'Parking not found'}, status=status.HTTP_404_NOT_FOUND)
+    parking = get_object_or_404(Parking, pk=pk)
 
     if request.method == 'GET':
         serializer = ParkingSerializer(parking)
@@ -62,7 +59,7 @@ def paket_list_create(request):
     if request.method == 'POST':
         if not request.user.role == 'owner':
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
-        
+
         serializer = PaketSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -72,10 +69,7 @@ def paket_list_create(request):
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated, IsOwner])
 def paket_detail(request, pk):
-    try:
-        paket = Paket.objects.get(pk=pk)
-    except Paket.DoesNotExist:
-        return Response({'error': 'Paket not found'}, status=status.HTTP_404_NOT_FOUND)
+    paket = get_object_or_404(Paket, pk=pk)
 
     if request.method == 'GET':
         serializer = PaketSerializer(paket)
@@ -96,7 +90,7 @@ def paket_detail(request, pk):
 @permission_classes([IsAuthenticated, IsUserOrAbove])
 def beli_paket(request):
     user = request.user
-    paket_id = request.data.get('paket_id')
+    paket_id = request.data.get('paketId')
     paket = get_object_or_404(Paket, id=paket_id)
 
     durasi_aktif = timezone.now() + timedelta(days=paket.durasi_hari)
@@ -104,13 +98,14 @@ def beli_paket(request):
     transaksi = TransaksiPaket.objects.create(user=user, paket=paket, durasi_aktif=durasi_aktif)
 
     order_id = f"order-{transaksi.id}"
-    gross_amount = float(paket.harga - (paket.harga * paket.diskon / 100))  
+    gross_amount = float(paket.harga - (paket.harga * paket.diskon / 100))
 
-    midtrans_url = create_midtrans_transaction(order_id, gross_amount, user)
+    midtrans_url, snap_token = create_midtrans_transaction(order_id, gross_amount, user)
 
     return Response({
         'message': 'Transaksi berhasil dibuat, lanjutkan pembayaran',
-        'midtrans_url': midtrans_url
+        'midtrans_url': midtrans_url,
+        'snapToken': snap_token,
     }, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
@@ -124,6 +119,7 @@ def midtrans_notification(request):
         return Response({'message': 'Pembayaran diterima'}, status=status.HTTP_200_OK)
     return Response({'message': 'Pembayaran gagal'}, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsUserOrAbove])
 def checkin_parkir(request):
@@ -134,3 +130,19 @@ def checkin_parkir(request):
     CheckInParkir.objects.create(user=user, parking=parking)
 
     return Response({'message': 'Check-in berhasil'}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_transaksi_paket(request):
+    user = request.user
+    transaksi = TransaksiPaket.objects.filter(user=user)
+    serializer = TransaksiPaketSerializer(transaksi, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_checkin_parkir(request):
+    user = request.user
+    checkin_parkir = CheckInParkir.objects.filter(user=user)
+    serializer = CheckInParkirSerializer(checkin_parkir, many=True)
+    return Response(serializer.data)

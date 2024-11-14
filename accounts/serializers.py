@@ -5,6 +5,12 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+class CustomUsersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'role'] 
+
+
 class CustomUserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

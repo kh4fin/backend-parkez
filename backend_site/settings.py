@@ -1,5 +1,6 @@
-import os
 from pathlib import Path
+from decouple import config 
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -9,10 +10,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_m$b(w*vtq*r$=2g5tq7t_nxmi_dyp!(o&f*3ajlx(3#v0^ihk'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -44,6 +45,8 @@ INSTALLED_APPS = [
     # local app
     "accounts",
     "parking",
+    # email brevo
+    'anymail',
 ]
 
 MIDDLEWARE = [
@@ -83,10 +86,32 @@ WSGI_APPLICATION = 'backend_site.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',  
+#         'USER': 'postgres.ktyeokijfsdecgazqlvv',  
+#         'PASSWORD': 'YOUR-PASSWORD',  
+#         'HOST': 'aws-0-ap-southeast-1.pooler.supabase.com',  
+#         'PORT': '6543', 
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DATABASE_NAME'),
+        'USER': config('DATABASE_USER'),
+        'PASSWORD': config('DATABASE_PASSWORD'),
+        'HOST': config('DATABASE_HOST'),
+        'PORT': config('DATABASE_PORT'),
     }
 }
 
@@ -190,16 +215,36 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
 
+# ANYMAIL = {
+#     "BREVO_API_KEY": "key",  
+# }
+
+# EMAIL_BACKEND = "anymail.backends.brevo.BrevoBackend" 
+# DEFAULT_FROM_EMAIL = 
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp-relay.brevo.com'  
+# EMAIL_PORT = 587  
+# EMAIL_USE_TLS = True  
+# EMAIL_HOST_USER = '7fefa2001@smtp-brevo.com'  
+# EMAIL_HOST_PASSWORD = 'TpdbwCnHKS4kI6G2'  
+# DEFAULT_FROM_EMAIL = '7fefa2001@smtp-brevo.com' 
+
+
+
 # send email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'  
-EMAIL_HOST_USER = '9e9519719d8a78'  
-EMAIL_HOST_PASSWORD = '01a66fad551b6f' 
-EMAIL_PORT = 2525  
-EMAIL_USE_TLS = True  
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = '9e9519719d8a78'
+EMAIL_HOST_PASSWORD = '01a66fad551b6f'
+EMAIL_PORT = '2525'
+EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'webmaster@localhost'
-
 AUTH_USER_MODEL = "accounts.CustomUserModel"
+
+
+
+
 
 
 # REST_AUTH_REGISTER_SERIALIZERS = {
