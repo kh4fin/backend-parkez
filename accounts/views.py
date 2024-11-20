@@ -45,6 +45,18 @@ class GetUserByTokenView(APIView):
             'profile_picture': user.profile_picture.url if user.profile_picture else None,
         }, status=status.HTTP_200_OK)
 
+class DeleteUserById(APIView):
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def delete(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+
+        if user is not None:
+            user.delete()
+            return Response({
+            'message': "User Deleted"
+        }, status=status.HTTP_204_NO_CONTENT)
+
 class GetUserByIdView(APIView):
     permission_classes = [IsAuthenticated, IsUserOrAbove]
     

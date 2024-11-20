@@ -175,6 +175,34 @@ def list_checkin_parkir(request):
     serializer = CheckInParkirSerializer(checkin_parkir, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def checkin_parkir(request, transaksi_id):
+    transaksi = get_object_or_404(TransaksiPaket, id=transaksi_id)
+
+    if transaksi.status != 'paid':
+        return Response({'message': 'Paket belum dibayar atau tidak valid'}, status=status.HTTP_400_BAD_REQUEST)
+
+    current_time = timezone.now()
+    if current_time > transaksi.durasi_aktif:
+        return Response({'message': 'Paket telah expired', 'status': 'expired'}, status=status.HTTP_200_OK)
+        
+    user = request.user
+    checkin_parkir = CheckInParkir.objects.filter(user=user)
+    serializer = CheckInParkirSerializer(checkin_parkir, many=True)
+
+    paket_info = {
+        'paket': transaksi.paket.nama,
+        'harga': transaksi.paket.harga,
+        'diskon': transaksi.paket.diskon,
+        'durasi_aktif': transaksi.durasi_aktif,
+        'detail': serializer,
+        'status': 'success',
+    }
+    
+    return Response(paket_info, status=status.HTTP_200_OK)
+    
+
 
 
 
