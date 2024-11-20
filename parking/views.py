@@ -1,4 +1,6 @@
 from rest_framework.decorators import api_view, permission_classes
+import base64
+from io import BytesIO
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.shortcuts import get_object_or_404
@@ -9,6 +11,10 @@ from .serializers import PaketSerializer, ParkingSerializer, TransaksiPaketSeria
 from .permissions import IsOwner, IsPartnerOrOwner, IsUserOrAbove
 from rest_framework.response import Response
 from .midtrans import create_midtrans_transaction
+import qrcode
+from io import BytesIO
+from django.http import HttpResponse
+from django.urls import reverse
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated, IsUserOrAbove])
@@ -112,13 +118,20 @@ def beli_paket(request):
 @permission_classes([IsAuthenticated, IsPartnerOrOwner])
 def midtrans_notification(request):
     data = request.data
-    if data['transaction_status'] == 'settlement':
-        transaksi = get_object_or_404(TransaksiPaket, id=data['order_id'].split('-')[-1])
-        transaksi.status = 'paid'
-        transaksi.save()
-        return Response({'message': 'Pembayaran diterima'}, status=status.HTTP_200_OK)
-    return Response({'message': 'Pembayaran gagal'}, status=status.HTTP_400_BAD_REQUEST)
+    order_id = data.get('order_id', '').split('-')[-1]  
+    transaksi = get_object_or_404(TransaksiPaket, id=order_id)
 
+    if data['transaction_status'] == 'settlement':
+        transaksi.status = 'paid'
+    elif data['transaction_status'] == 'pending':
+        transaksi.status = 'pending'
+    elif data['transaction_status'] in ['cancel', 'expire']:
+        transaksi.status = 'failed'
+    else:
+        return Response({'message': 'Status pembayaran tidak valid'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    transaksi.save()
+    return Response({'message': 'Pembayaran berhasil diperbarui'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsUserOrAbove])
@@ -141,8 +154,103 @@ def list_transaksi_paket(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def list_paket_user(request):
+    user = request.user
+    print(user)
+    transaksi = TransaksiPaket.objects.filter(user=user, status='paid')
+    print(transaksi)
+    
+    if not transaksi.exists():
+        return Response({'message': 'Belum ada paket yang dibeli'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = TransaksiPaketSerializer(transaksi, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def list_checkin_parkir(request):
     user = request.user
     checkin_parkir = CheckInParkir.objects.filter(user=user)
     serializer = CheckInParkirSerializer(checkin_parkir, many=True)
     return Response(serializer.data)
+
+
+
+
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def generate_qrcode(request, transaksi_id):
+#     user = request.user
+#     transaksi = get_object_or_404(TransaksiPaket, id=transaksi_id, user=user)
+
+#     url = request.build_absolute_uri(reverse('verify_qrcode', kwargs={'transaksi_id': transaksi.id}))
+
+#     qr = qrcode.QRCode(
+#         version=1,
+#         error_correction=qrcode.constants.ERROR_CORRECT_L,
+#         box_size=10,
+#         border=4,
+#     )
+#     qr.add_data(url)
+#     qr.make(fit=True)
+
+#     img = qr.make_image(fill='black', back_color='white')
+
+#     buffer = BytesIO()
+#     img.save(buffer, 'PNG')
+#     buffer.seek(0)
+
+#     return HttpResponse(buffer, content_type='image/png')
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def generate_qrcode(request, transaksi_id):
+    user = request.user
+    transaksi = get_object_or_404(TransaksiPaket, id=transaksi_id, user=user)
+
+    url = request.build_absolute_uri(reverse('verify_qrcode', kwargs={'transaksi_id': transaksi.id}))
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill='black', back_color='white')
+
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+    return Response({'qr_code_base64': img_base64})
+
+
+@api_view(['GET'])
+def verify_qrcode(request, transaksi_id):
+    transaksi = get_object_or_404(TransaksiPaket, id=transaksi_id)
+
+    if transaksi.status != 'paid':
+        return Response({'message': 'Paket belum dibayar atau tidak valid'}, status=status.HTTP_400_BAD_REQUEST)
+
+    current_time = timezone.now()
+    if current_time > transaksi.durasi_aktif:
+        return Response({'message': 'Paket telah expired', 'status': 'expired'}, status=status.HTTP_200_OK)
+
+    paket_info = {
+        'paket': transaksi.paket.nama,
+        'harga': transaksi.paket.harga,
+        'diskon': transaksi.paket.diskon,
+        'durasi_aktif': transaksi.durasi_aktif,
+        'status': 'success',
+    }
+    
+    return Response(paket_info, status=status.HTTP_200_OK)
+
+

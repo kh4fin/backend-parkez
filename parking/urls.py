@@ -20,6 +20,15 @@ urlpatterns = [
     # Endpoint untuk notifikasi Midtrans
     path('midtrans-notification/', views.midtrans_notification, name='midtrans-notification'),
 
+    #Endpoind untuk list_paket_user
+    path('list-paket-user/', views.list_paket_user, name='list_paket_user'),
+
+    #Endpoind untuk generate qrcode
+    path('generate-qrcode/<int:transaksi_id>/', views.generate_qrcode, name='generate_qrcode'),
+
+    #Endpoind untuk verify qrcode
+    path('verify-qrcode/<int:transaksi_id>/', views.verify_qrcode, name='verify_qrcode'),
+
     # Endpoint untuk check-in parkir
     path('checkin-parkir/', views.checkin_parkir, name='checkin-parkir'),
 

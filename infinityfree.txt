@@ -1,8 +1,0 @@
-account: Website for api-parkez.freesite.online
-
-password: NyXbxTIl8JXoWd
-
-Database Name : if0_37686215_parkez
-MySQL Username : if0_37686215
-MySQL Password : NyXbxTIl8JXoWd
-MySQL Hostname : sql312.infinityfree.com

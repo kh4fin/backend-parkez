@@ -31,7 +31,7 @@ class TransaksiPaketSerializer(serializers.ModelSerializer):
             'status',
             'created_at'
         ]
-        read_only_fields = ['id', 'durasi_aktif', 'status', 'created_at']
+        read_only_fields = ['id', 'durasi_aktif', 'created_at']
 
 
 class ParkingSerializer(serializers.ModelSerializer):

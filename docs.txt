@@ -1,0 +1,7 @@
+Payment Simulator
+
+GoPay | ShopeePay | QRIS: https://simulator.sandbox.midtrans.com/qris/index
+
+BCA Virtual Account : https://simulator.sandbox.midtrans.com/bca/va/index
+
+BRI Virtual Account : https://simulator.sandbox.midtrans.com/openapi/va/index?bank=bri
