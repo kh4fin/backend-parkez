@@ -175,34 +175,62 @@ def list_checkin_parkir(request):
     serializer = CheckInParkirSerializer(checkin_parkir, many=True)
     return Response(serializer.data)
 
-@api_view(['GET'])
+@api_view(['POST'])  
 @permission_classes([IsAuthenticated])
 def checkin_parkir(request, transaksi_id):
     transaksi = get_object_or_404(TransaksiPaket, id=transaksi_id)
 
     if transaksi.status != 'paid':
-        return Response({'message': 'Paket belum dibayar atau tidak valid'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {'message': 'Paket belum dibayar atau tidak valid'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     current_time = timezone.now()
     if current_time > transaksi.durasi_aktif:
-        return Response({'message': 'Paket telah expired', 'status': 'expired'}, status=status.HTTP_200_OK)
-        
-    user = request.user
-    checkin_parkir = CheckInParkir.objects.filter(user=user)
-    serializer = CheckInParkirSerializer(checkin_parkir, many=True)
+        return Response(
+            {'message': 'Paket telah expired', 'status': 'expired'}, 
+            status=status.HTTP_200_OK
+        )
 
-    paket_info = {
-        'paket': transaksi.paket.nama,
-        'harga': transaksi.paket.harga,
-        'diskon': transaksi.paket.diskon,
-        'durasi_aktif': transaksi.durasi_aktif,
-        'detail': serializer,
-        'status': 'success',
-    }
-    
-    return Response(paket_info, status=status.HTTP_200_OK)
-    
+    user_di_scan = transaksi.user
 
+    parking_spot = Parking.objects.first()  
+
+    checkin_record = CheckInParkir.objects.create(
+        user=user_di_scan,
+        parking=parking_spot,
+    )
+
+    serializer = CheckInParkirSerializer(checkin_record)
+
+    return Response(
+        {
+            'message': 'Check-in berhasil',
+            'user': user_di_scan.email,
+            'paket': transaksi.paket.nama_paket,
+            'checkin': serializer.data,
+        },
+        status=status.HTTP_201_CREATED
+    )
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated, IsUserOrAbove])
+def history_list_create(request):
+    if request.method == 'GET':
+        paket = Paket.objects.all()
+        serializer = PaketSerializer(paket, many=True)
+        return Response(serializer.data)
+
+    if request.method == 'POST':
+        if not request.user.role == 'owner':
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = PaketSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -238,7 +266,7 @@ def generate_qrcode(request, transaksi_id):
     user = request.user
     transaksi = get_object_or_404(TransaksiPaket, id=transaksi_id, user=user)
 
-    url = request.build_absolute_uri(reverse('verify_qrcode', kwargs={'transaksi_id': transaksi.id}))
+    url = request.build_absolute_uri(reverse('checkin-parkir', kwargs={'transaksi_id': transaksi.id}))
 
     qr = qrcode.QRCode(
         version=1,

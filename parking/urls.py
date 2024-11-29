@@ -30,7 +30,7 @@ urlpatterns = [
     path('verify-qrcode/<int:transaksi_id>/', views.verify_qrcode, name='verify_qrcode'),
 
     # Endpoint untuk check-in parkir
-    path('checkin-parkir/', views.checkin_parkir, name='checkin-parkir'),
+    path('checkin-parkir/<int:transaksi_id>/', views.checkin_parkir, name='checkin-parkir'),
 
     # Endpoint untuk riwayat transaksi paket
     path('transaksi-paket/', views.list_transaksi_paket, name='list-transaksi-paket'),
