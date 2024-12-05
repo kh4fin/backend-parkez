@@ -18,7 +18,7 @@ urlpatterns = [
     path('beli-paket/', views.beli_paket, name='beli-paket'),
 
     # Endpoint untuk notifikasi Midtrans
-    path('midtrans-notification/', views.midtrans_notification, name='midtrans-notification'),
+    path('midtrans-notification/<int:transaksi_id>/', views.midtrans_notification, name='midtrans-notification'),
 
     #Endpoind untuk list_paket_user
     path('list-paket-user/', views.list_paket_user, name='list_paket_user'),

@@ -3,7 +3,7 @@ import base64
 from io import BytesIO
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from datetime import timedelta
 from .models import Paket, Parking, TransaksiPaket, CheckInParkir
@@ -114,24 +114,52 @@ def beli_paket(request):
         'snapToken': snap_token,
     }, status=status.HTTP_201_CREATED)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated, IsPartnerOrOwner])
-def midtrans_notification(request):
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def midtrans_notification(request, transaksi_id):
     data = request.data
-    order_id = data.get('order_id', '').split('-')[-1]  
-    transaksi = get_object_or_404(TransaksiPaket, id=order_id)
+    transaction_status = data.get('transaction_status')
 
-    if data['transaction_status'] == 'settlement':
+    # Cari transaksi berdasarkan ID
+    try:
+        transaksi = TransaksiPaket.objects.get(id=transaksi_id)
+    except TransaksiPaket.DoesNotExist:
+        return Response({'message': 'Transaksi tidak ditemukan'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Update status transaksi
+    if transaction_status == 'settlement':
         transaksi.status = 'paid'
-    elif data['transaction_status'] == 'pending':
+    elif transaction_status == 'pending':
         transaksi.status = 'pending'
-    elif data['transaction_status'] in ['cancel', 'expire']:
+    elif transaction_status in ['cancel', 'expire']:
         transaksi.status = 'failed'
     else:
         return Response({'message': 'Status pembayaran tidak valid'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     transaksi.save()
-    return Response({'message': 'Pembayaran berhasil diperbarui'}, status=status.HTTP_200_OK)
+    return redirect(f"http://localhost:5173/home")
+    # return Response({'message': 'Status transaksi berhasil diperbarui'}, status=status.HTTP_200_OK)
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated, IsPartnerOrOwner])
+# def midtrans_notification(request):
+#     data = request.data
+#     order_id = data.get('order_id', '').split('-')[-1]  
+#     transaksi = get_object_or_404(TransaksiPaket, id=order_id)
+
+#     print(data)
+
+#     if data['status'] == 'settlement':
+#         transaksi.status = 'paid'
+#     elif data['transaction_status'] == 'pending':
+#         transaksi.status = 'pending'
+#     elif data['transaction_status'] in ['cancel', 'expire']:
+#         transaksi.status = 'failed'
+#     else:
+#         return Response({'message': 'Status pembayaran tidak valid'}, status=status.HTTP_400_BAD_REQUEST)
+    
+#     transaksi.save()
+#     return Response({'message': 'Pembayaran berhasil diperbarui'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsUserOrAbove])
