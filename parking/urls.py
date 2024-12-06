@@ -35,6 +35,9 @@ urlpatterns = [
     # Endpoint untuk riwayat transaksi paket
     path('transaksi-paket/', views.list_transaksi_paket, name='list-transaksi-paket'),
 
+    # Endpoint untuk riwayat transaksi paket by user
+    path('transaksi-paket-user/', views.list_transaksi_paket_by_User, name='list_transaksi_paket_by_User'),
+
     # Endpoint untuk riwayat check-in parkir
     path('checkin-parkir-history/', views.list_checkin_parkir, name='list-checkin-parkir'),
 ]

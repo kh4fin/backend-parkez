@@ -35,7 +35,7 @@ def parking_list_create(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated, IsOwner])
+@permission_classes([IsAuthenticated, IsUserOrAbove])
 def parking_detail(request, pk):
     parking = get_object_or_404(Parking, pk=pk)
 
@@ -175,6 +175,13 @@ def checkin_parkir(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_transaksi_paket(request):
+    transaksi = TransaksiPaket.objects.all()
+    serializer = TransaksiPaketSerializer(transaksi, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_transaksi_paket_by_User(request):
     user = request.user
     transaksi = TransaksiPaket.objects.filter(user=user)
     serializer = TransaksiPaketSerializer(transaksi, many=True)

@@ -20,6 +20,8 @@ class Parking(models.Model):
     nama_tempat = models.CharField(max_length=100)
     lokasi = models.CharField(max_length=255)
     koordinat = models.CharField(max_length=20, unique=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, help_text="Garis lintang lokasi parkir")
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, help_text="Garis bujur lokasi parkir")
     tipe_kendaraan = models.CharField(max_length=20, choices=(('mobil', 'Mobil'), ('motor', 'Motor')))
     kapasitas = models.IntegerField()
     terpakai = models.IntegerField(default=0)

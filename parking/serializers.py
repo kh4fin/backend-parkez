@@ -19,19 +19,35 @@ class PaketSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
+# class TransaksiPaketSerializer(serializers.ModelSerializer):
+#     paket = PaketSerializer(read_only=True)  
+#     class Meta:
+#         model = TransaksiPaket
+#         fields = [
+#             'id',
+#             'user',
+#             'paket',
+#             'durasi_aktif',
+#             'status',
+#             'created_at'
+#         ]
+#         read_only_fields = ['id', 'durasi_aktif', 'created_at']
 class TransaksiPaketSerializer(serializers.ModelSerializer):
-    paket = PaketSerializer(read_only=True)  
+    paket = PaketSerializer(read_only=True)
+    user_name = serializers.CharField(source='user.first_name', read_only=True)  
+
     class Meta:
         model = TransaksiPaket
         fields = [
             'id',
-            'user',
+            'user_name',  
             'paket',
             'durasi_aktif',
             'status',
             'created_at'
         ]
         read_only_fields = ['id', 'durasi_aktif', 'created_at']
+
 
 
 class ParkingSerializer(serializers.ModelSerializer):
@@ -42,6 +58,8 @@ class ParkingSerializer(serializers.ModelSerializer):
             'nama_tempat',
             'lokasi',
             'koordinat',
+            'latitude',
+            'longitude',
             'tipe_kendaraan',
             'kapasitas',
             'terpakai'
